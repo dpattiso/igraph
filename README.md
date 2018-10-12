@@ -6,5 +6,15 @@ This code requires that JavaFF 2.1 ([https://github.com/dpattiso/javaff]), JavaS
 
 Note that IGRAPH uses a specific build (circa 2011?) of Helmert's SAS+ translation scripts which disables reachability analysis, so this cannot be swapped out for a more recent version.
 
+More detailed usage is in doc/README.
+
+# Citation
+@phdthesis{phdthesis,
+  author       = {David Pattison}, 
+  title        = {A New Heuristic Based Model of Goal Recognition Without Libraries},
+  school       = {University of Strathclyde},
+  year         = 2015
+}
+
 ## Oct 2018
 This is the code as it was post-corrections. It is untested in its current form, but it should still work (although a lot of the additional fluff for running experiments has been removed from Git... so let me know if it fails).
