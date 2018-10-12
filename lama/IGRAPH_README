@@ -1,0 +1,4 @@
+
+Note that this is NOT the same version of the LAMA translator was originally taken from LAMA 2008. It has had changes in several key places in order to allow relaxed, mutex goals to be allowed in translation. It has also been modified to not prune any nodes from the causal graph, so that all DTGs are created.
+
+In short, modify it at your own risk, and do not expect IGRAPH to work with any other version (FD, LAMA 2008, LAMA 2011 etc).

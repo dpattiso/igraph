@@ -1,0 +1,46 @@
+\begin{thebibliography}{1}
+
+\bibitem{Coles08}
+Andrew Coles, Maria Fox, Derek Long, and Amanda Smith.
+\newblock Teaching forward-chaining planning with {JavaFF}.
+\newblock In {\em Colloquium on AI Education, 23rd AAAI Conference on
+  Artificial Intelligence}, 2008.
+
+\bibitem{Helmert04}
+Malte Helmert.
+\newblock A planning heuristic based on causal graph analysis.
+\newblock In {\em Proceedings of the International Conference on Automated
+  Planning and Scheduling}, pages 161--170, 2004.
+
+\bibitem{Long03}
+Derek Long and Maria Fox.
+\newblock The third international planning competition: Results and analysis.
+\newblock {\em Journal of Artificial Intelligence Research}, 20:1--59, 2003.
+
+\bibitem{PattisonPhD}
+David Pattison.
+\newblock {\em A New Heuristic-Based Model of Goal Recognition Without
+  Libraries}.
+\newblock PhD thesis, University of Strathclyde, 2015.
+
+\bibitem{Pattison2010_001}
+David Pattison and Derek Long.
+\newblock Domain independent goal recognition.
+\newblock In {\em {STAIRS} 2010: Proceedings of the Fifth Starting {AI}
+  Researchers' Symposium}, volume 222, pages 238 -- 250. IOS Press, August
+  2010.
+
+\bibitem{Pattison2010_002}
+David Pattison and Derek Long.
+\newblock Extracting plans from plans.
+\newblock In S.~Fratini, A.~Gerevini, D.~Long, and A.~Saetti, editors, {\em
+  Proceedings of the 28th Workshop of the UK Special Interest Group on Planning
+  and Scheduling, PLANSIG'10}, pages 149 -- 156, December 2010.
+
+\bibitem{Richter08}
+Matthias Westphal and Silvia Richter.
+\newblock The {LAMA} planner. using landmark counting in heuristic search,
+  2008.
+\newblock Short paper for IPC 2008.
+
+\end{thebibliography}

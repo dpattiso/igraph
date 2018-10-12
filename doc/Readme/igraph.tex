@@ -1,0 +1,216 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{url}
+\newcommand*\justify{%
+  \fontdimen2\font=0.4em% interword space
+  \fontdimen3\font=0.2em% interword stretch
+  \fontdimen4\font=0.1em% interword shrink
+  \fontdimen7\font=0.1em% extra space
+  \hyphenchar\font=`\-% allowing hyphenation
+}
+\author{David Pattison\\david.pattison@strath.ac.uk}
+\title{\textsc{IGRAPH} Usage}
+\begin{document}
+
+\maketitle
+
+\section{Overview}
+
+This document describes the \textsc{IGRAPH} goal recogniser and associated project dependencies. See \cite{PattisonPhD,Pattison2010_001,Pattison2010_002} for more on how the underlying modelling works. Note that \cite{Pattison2010_002} is now not completely representative of how the plan threader works.
+
+\section{Introduction}
+
+
+\textsc{IGRAPH} is a heuristic-based goal recogniser, which allows goal recognition to be performed on \textsc{PDDL} level 1 input domain and problem files. Unlike other recognisers, it does not rely on a plan-library for recognition.
+
+
+\textsc{IGRAPH} --- Intermediate Goal Recognition with A Planning Heuristic (previously known as \textsc{AUTOGRAPH} \cite{Pattison2010_001}, a term which appears frequently in the code), accepts input from a PDDL 2.1 \cite{Long03}, which should allow rapid deployment of the system and development/evaluation of associated domains.
+
+The system uses heuristics as a means of determining which goals an agent is pursuing. This is done by breaking the set of all possible goals (including conjunctions) into multiple sets of mutually-exclusive facts, and determining which of these facts has had the most ``work'' put into its achievement by the observed plan.
+
+Note that for this work, the ``agent'' is implicitly that which is executing the plan. That is, in a logistics problem, truck drivers are not individual agents, but rather the person/planner which generated the overall plan is. This is merely a formality and can be overlooked for most problems, but as there is much work in multi-agent recognition, it is best to have this clear from the offset. Furthermore, \textsc{IGRAPH} was initially intended to support multiple agents, but while this was ultimately removed, some evidence of it remains in the code (such as the use of \texttt{recogniser.learning.agent.NullAgent}) in certain places.
+
+
+\section{Environment}
+
+\textsc{IGRAPH} has largely been written under Linux and makes use of Linux-style paths for external script calls, but there is no reason it should not work on Window/Mac (see below for further details).
+
+The recogniser has been written for comfort, and not for speed. That is, while some parts have been optimised to run quickly, others have definitely not! Therefore, memory requirements for the JVM can vary greatly, however, as a general rule 2GB should be enough for large problems (\texttt{-Xmx=2048M}).
+
+\begin{itemize}
+
+\item \textsc{IGRAPH} is written in Java, and should run on Java 5+.
+
+\item Strictly, Python 2 is required to run Helmert's SAS$^+$ translator, but Python 3 should also work. If you are having issues, the file you probably want to look at is under $\langle$JavaSAS/IGRAPH$\rangle$/lama/translate/translate.py.
+
+\item Perl is used to launch the SAS$^+$ translator from within Java. This is a single line of code and could easily be changed to your environment of choice.
+
+\item \textsc{IGRAPH} is domain independent, but the external scripts it uses are largely coded for Linux. However, I have been successful in running the system on Windows using Cygwin. A copy of the SAS$^+$ translator as a Windows 7 64-bit compiled executable. \textsc{IGRAPH} should automatically detect which operating system is in use and call the appropriate translator script --- but is more likely to fail because of hard-coded paths to Python. See JavaSAS/src/sas/parser/SASTranslator.java for the relevant code, and change the path/script accordingly for your system.
+
+\end{itemize}
+
+
+\section{Dependencies}
+
+\begin{itemize}
+\item \textbf{JavaFF2.1} --- An almost complete rewrite of the JavaFF planner \cite{Coles08}. Used as a baseline for IGRAPH development as many concepts are shared between planning and recognition.
+\item \textbf{JavaSAS} --- An implementation of the SAS$^+$ formalism in Java. Uses Helmert's PDDL to SAS$^+$ translator \cite{Helmert04} the actual translation, then parses in the resulting output to a more useful Java form. Used as a source of heuristics by \textsc{IGRAPH}.
+\item \textbf{NewPlanThreader} --- A library for constructing graph-based representations of an observed plan. Used by \textsc{IGRAPH} as a source of ``work'' functions.
+\end{itemize}
+
+\subsection{Third-party dependencies}
+\begin{itemize}
+\item \textbf{JGraphT} --- Used by \textsc{IGRAPH}, \textsc{JavaFF2.1} and \textsc{NewPlanThreader}. Should be in each project's ``lib'' directory.
+\item \textbf{PDDL to SAS$^+$ Translator} --- There are 2 copies of Helmert's SAS$^+$ translator. \textsc{JavaSAS} holds an unmodified copy of the translator \footnote{I \emph{think} it is the 2008 version bundled with the original version of \textsc{Lama} \cite{Richter08}. \textsc{AUTOGRAPH} used the 2004 version, and since then the 2011 version has been released.} which is used by this project alone. \textsc{IGRAPH} holds a separate copy of the 2011 translator, which has been modified to prevent optimisation of the output files based on the true goal. \textbf{DO NOT MODIFY, DELETE OR OVERWRITE THIS COPY!} It will result in \textsc{IGRAPH} having a far more tightly optimised problem to solve, which will give 
+you false positives in your results.
+
+\end{itemize}
+
+\begin{sloppypar}
+\section{Usage}
+
+\textsc{IGRAPH} can be used in two manners --- as a way of evaluating performance on a given domain and problem file, or as a goal recogniser embedded within your application of choice. Section \ref{subsec:igraph_tet_harness} describes the former, while Section \ref{subsec:igraph_integration} briefly describes the latter.
+
+In both cases, this section assumes you are using something like Eclipse for setting up paths. For \textsc{IGRAPH} and all its dependencies, make sure that everything under the respective ``lib'' directory is added to the Java classpath. Note that there may be some classes in the JAR which contain errors --- these are old or deprecated code which can be ignored/removed from the PATH/deleted.
+
+\subsection{Using the \textsc{IGRAPH} Test Harness}
+\label{subsec:igraph_tet_harness}
+
+If you wish to evaluate the performance of \textsc{IGRAPH} on your domain and problem files, the easiest way is to use \texttt{recogniser.IGRAPHTestHarness.java}, which will allow you to see how accurate hypotheses are against a known-goal.
+
+Basic \textsc{IGRAPH} usage is as follows:
+
+\texttt{java recogniser.IGRAPHTestHarness \\
+\indent\indent$\langle$domain file$\rangle$ \\
+\indent\indent$\langle$problem file$\rangle$ \\
+\indent\indent$\langle$solution file$\rangle$ \\
+\indent\indent$\langle$output path prefix$\rangle$}
+
+All output is to stdout, so it may be easier to \texttt{grep} this for what you are looking for (that is, there is a LOT of text output when executing!).
+
+\textsc{IGRAPH} and the test harness have a multitude of switches for performing tests with. See (or execute) IGRAPH/src/IGRAPHTestHarness.java for a list of these, which as of \today are as follows.
+
+\begin{itemize}
+
+\item \texttt{-heuristic \{Max,FF,CG,CEA,JavaFF,Random\}} --- The heuristic to use during recognition. Defaults to CEA.
+
+\item \texttt{-likelihood \{ML,MLThreaded,SA\}} --- The \emph{work} function to use during recognition. Defaults to \texttt{SA}.
+
+\item \texttt{-filter \{Greedy,Stability\}} --- The technique used for filtering goal hypotheses. Only Greedy is currently supported/working.
+
+\item \texttt{-minProbability [0:1]} -- Unused.
+
+\item \texttt{-minStability [0:1]} -- Unused.
+
+\item \texttt{-bayesLambda (0:1)} -- The value for $\lambda$ during Bayesian updates. Can be ultimately ignored as it should make no difference to output. Defaults to 0.8.
+
+\item \texttt{-goalSpace \{Map,BDD\}} --- Ignored. Only \texttt{Map} is currently supported.
+
+\item \texttt{-verifyGoalSpace \{0,1\}} --- If true (1), the total probability of each sub-goal-space is verified to sum to 1 after each Bayesian update. Defaults to 0.
+
+\item \texttt{-translate \{0,1\}} --- Whether to do SAS$^+$ translation at runtime or not. If 0 it is assumed that the relevant SAS$^+$ files already exist in the relevant location (that is, they contain the correct information for the domain and problem file currently being evaluated). If 1, the translator is called before recognition begins. Note that this will cause a \texttt{fork()} by Java on the underlying operating system, which means that all of the memory currently allocated to \textsc{IGRAPH}/Java will be \emph{duplicated} just to call the Python translator (which has a trivial memory usage). Therefore, it is better to perform translation prior to calling, lest you want half your available memory to be consumed on a minor script execution. Defaults to 1.
+
+\item \texttt{-initial \{Uniform,CV\}} --- The type of initial probability distribution across the goal-space(s). \texttt{Uniform} results in a uniform distribution across the $n$ goals in the goal-space, while \texttt{CV} assigns the \emph{causality-value} as described in \cite{PattisonPhD}. Defaults to \texttt{CV}.
+
+\item \texttt{-partial \{0,1\}} --- Ignored. Whether to treat observation as potentially partially-observable.
+
+\item \texttt{-bounded \{0,1\}} --- Whether to generate \emph{bounded hypotheses} after each observation. This can slow runtimes considerably on some problems, even though it is multi-threaded. Defaults to 1.
+
+\item \texttt{-stabilityThreshold [0:1]} --- The minimum stability value of a goal for inclusion in the final hypothesis. Defaults to 1.
+
+\item \texttt{-multithreaded \{0,1\}} --- Whether to use multi-threading during observation. Massively speeds up the recognition process when enabled. Defaults to 1.
+
+\item \texttt{-visual \{0,1\}} --- Whether to show a visual representation of the goal-spaces as observation continues. Very useful for debugging. Defaults to 0.
+
+\end{itemize}
+
+
+As a concrete example, this is (largely) the command generated by Eclipse when running a test using the test harness, and all dependencies extracted to respective projects in the same root director. Here, \texttt{depots} problem 6 is evaluated using a solution file with the causal graph heuristic \cite{Helmert04} and \emph{single-action} work function. The goal-space is initialised with the \emph{causality-value} probability distribution.
+
+\noindent 
+\texttt{java  -classpath ../IGRAPH/bin;\\\indent ../JavaFF2/bin;\\\indent ../JavaFF2/lib/jgrapht-0.8.2/jgrapht-jdk1.6.jar;\\\indent ../JavaSAS/bin;\\\indent ../NewPlanThreader/bin;\\\indent ../IGRAPH/lib/jgrapht-jdk1.6.jar\\ recogniser.IGRAPHTestHarness\\\indent  ../Domains/ipc3/depots\_ipc3/domain.pddl\\\indent  ../Domains/ipc3/depots\_ipc3/pfile06\\\indent  ../Domains/ipc3/depots\_ipc3/solutions/pfile6.soln\\\indent  /tmp/igraph\_out\\ -heuristic CG -work SA -initial CV}
+
+\subsection{Using \textsc{IGRAPH} in an Application}
+\label{subsec:igraph_integration}
+
+If you wish to use \textsc{IGRAPH} in your application, you probably will want to avoid the text harness, which assumes you have a file on-disk or a known-goal you want to evaluate against. In truth, you will probably have to refer to \texttt{IGRAPHTestHarness.java} for help in figuring out how to integrate the recogniser at all, as this process is not very obvious.
+
+\texttt{recogniser.IGRAPH.java} is probably the most obvious object to use, but this is really just a wrapper for \texttt{recogniser.BayesianGoalRecogniser.java} which does all of the work. This latter class contains all the true functionality, and would allow you to use an already-grounded problem. While there are a multitude of methods in this class, only a couple are of relevance for simple recognition to occur. 
+
+When an action is observed, calling \\ \texttt{BayesianGoalRecogniser.actionObserved(javaff.data.Action)} will tell \textsc{IGRAPH} to process the action and update the goal-space appropriately.  Next, to get a hypothesis either call \texttt{BayesianGoalRecogniser.getImmediateHypothesis()} to get an \emph{intermediate} hypothesis\footnote{One day this method will be renamed to \texttt{getIntermediateHypothesis()}, but today is not that day.}, or \texttt{BayesianGoalRecogniser.getFinalHypothesis()} if you know that observation has finished and want a \emph{final} hypothesis.
+
+
+\subsection{Terminating \textsc{IGRAPH}}
+
+As \textsc{IGRAPH} is multi-threaded, it must be told when to close the corresponding thread pool(s). This can be done through \texttt{IGRAPH.terminate()} or \texttt{BayesianGoalRecogniser.terminate()}. If you are using the test harness, it will do this automatically for you.
+
+\end{sloppypar}
+
+
+\section{Useful Tools}
+
+\textsc{IGRAPH} comes bundled with several tool/test classes used during development which may be of interest to your research. These are briefly described as follows, and can all be found under the \texttt{recogniser.test} package.
+
+\begin{itemize}
+
+\item \texttt{AbandonmentTestHarness} --- A testbed for evaluating \textsc{IGRAPH} when an agent abandons their goal before achievement, and switches to another. See the code for more details on what is required/output by this file.
+
+\item \texttt{ContinuousPlanner} --- A wrapper for \textsc{JavaFF} 2.1 which generates a complete plan for a given goal then cuts the last X\% (determined by the user). The state resulting from the execution of this initial part of the plan is then used as the initial state for another plan whose goal is either a random goal in the goal-space or a user-defined goal. Again, see code for usage. This was created as a means of generating solutions to be fed into \texttt{AbandonmentTestHarness}.
+
+\item \texttt{GraphGenerator} --- Generates PDDL domains based on common graph structures (grid, random, wheel etc.). The \emph{city} structure attempts to mimic a state-space with local neighbourhoods. Note that using this class will require some hard-coding of paths/uncommenting of code.
+
+\end{itemize}
+
+\section{Notes}
+Read the section on 3rd party dependencies!
+
+
+\section{Citing \textsc{IGRAPH}}
+
+The most relevant conference publication is from ICAPS 2011, while the thesis is also naturally a useful reference.
+
+\begin{itemize}
+
+
+\item \texttt{@INPROCEEDINGS\{Pattison2011\_002,\\
+	author = "David Pattison and Derek Long",\\
+	title = "Accurately determining intermediate and terminal plan states using {B}ayesian goal recognition",\\
+	booktitle = "Proceedings of the First Workshop on Goal, Activity and Plan Recognition {(GAPRec)}",\\
+	year = "2011",\\
+	editor = "David Pattison and Derek Long and Christopher W. Geib",\\
+	pages = "32 -- 37",\\
+	month = "June"\\
+\}
+}
+
+\item \texttt{@PhdThesis\{PattisonPhD,\\
+author = {David Pattison},\\
+title = {A New Heuristic-Based Model of Goal Recognition Without Libraries},\\
+school = {University of Strathclyde},\\
+year = {2015}\\
+\}
+}
+
+
+
+\end{itemize}
+
+
+\section{Useful Links}
+
+\begin{itemize}
+
+\item PAIR --- http://www.planrec.org --- Homepage of the PAIR workshop. Contains some useful links to other plan/goal recognisers and datasets.
+
+\item FastDownward --- http://www.fast-downward.org --- The homepage of the Fast Downward planning system, from which the SAS$^+$ translator scripts are taken.
+
+\end{itemize}
+
+
+\bibliography{thesis}
+\bibliographystyle{plain}
+
+\end{document}
