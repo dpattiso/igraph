@@ -7,7 +7,7 @@ This is the code as it was post-corrections. It is untested in its current form,
 
 
 # Usage
-This code requires that JavaFF 2.1 ([https://github.com/dpattiso/javaff]), JavaSAS ([https://github.com/dpattiso/javasasplus]) and PlanThreader ([https://github.com/dpattiso/planthreader]) all be on the classpath, along with the contents of the /lib directory.
+This code requires that JavaFF 2.1 (https://github.com/dpattiso/javaff), JavaSAS (https://github.com/dpattiso/javasasplus) and PlanThreader (https://github.com/dpattiso/planthreader) all be on the classpath, along with the contents of the /lib directory.
 
 Note that IGRAPH uses a specific build (circa 2011?) of Helmert's SAS+ translation scripts which disables reachability analysis, so this cannot be swapped out for a more recent version.
 
