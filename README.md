@@ -67,3 +67,5 @@ Or the associated papers
 	issn = "0922-6389",
 }
 ```
+# Copyright
+All code under the /src directory is licensed for use under LGPL 3.0. All other libraries used come under their own copyright usage which should be reviewed individually.
